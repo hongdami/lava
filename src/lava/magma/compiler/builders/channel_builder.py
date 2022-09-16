@@ -58,7 +58,6 @@ class ChannelBuilderMp(AbstractChannelBuilder):
         """
         itemsize = np.dtype(self.src_port_initializer.d_type).itemsize
         nbytes = np.prod(self.src_port_initializer.shape) * itemsize
-        print(self.channel_type, self.src_port_initializer.size, nbytes, self.src_port_initializer.name)
         return Channel(self.channel_type,
                        self.src_port_initializer.size,
                        nbytes,
