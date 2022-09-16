@@ -2,48 +2,81 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # See: https://spdx.org/licenses/
 
-import time
+import re
 import numpy as np
-from enum import Enum
+import unittest
+import traceback
+from functools import partial
+import time
 
-from message_infrastructure import SendPort
-from message_infrastructure import RecvPort
-from message_infrastructure import ChannelTransferType
-from message_infrastructure import Channel
+from message_infrastructure.multiprocessing import MultiProcessing
 
-def nbytes_cal(shape, dtype):
-    return np.prod(shape) * np.dtype(dtype).itemsize
+from message_infrastructure import (
+    ChannelTransferType,
+    Channel,
+    SendPort,
+    RecvPort
+)
 
-
-def main():
+def prepare_data():
     data = np.array([12,24,36,48,60], dtype = np.int32)
-    size = 5
-    nbytes = 4 * 5
-    name = 'test_shmem_channel'
+    return data
 
-    print(data)
-    print(type(data))
+def send_proc(*args, **kwargs):
+    try:
+        actor = args[0]
+        port = kwargs.pop("port")
+        assert isinstance(port, SendPort)
+        port.start()
+        port.send(prepare_data())
+    except Exception as e:
+        print("send error")
+        raise e
 
-    shmem_channel = Channel(
-        ChannelTransferType.SHMEMCHANNEL,
-        size,
-        nbytes,
-        name)
+def recv_proc(*args, **kwargs):
+    try:
+        actor = args[0]
+        port = kwargs.pop("port")
+        port.start()
+        assert isinstance(port, RecvPort)
+        data = port.recv()
+        assert np.array_equal(data, prepare_data())
+    except Exception as e:
+        raise e
 
-    send_port = shmem_channel.get_send_port()
-    recv_port = shmem_channel.get_recv_port()
+class Builder():
+    def build(self):
+        pass
 
-    send_port.start()
-    recv_port.start()
+class TestShmemChannel(unittest.TestCase):
+    mp = MultiProcessing()
+    def test_shmemchannel(self):
+        self.mp.start()
+        size = 5
+        predata = prepare_data()
+        nbytes = np.prod(predata.shape) * predata.dtype.itemsize
+        name = 'test_shmem_channel'
 
-    send_port.send(data)
-    send_port.send(data)
-    print("Recv data : ",recv_port.recv())
-    print("Recv data : ",recv_port.recv())
+        shmem_channel = Channel(
+            ChannelTransferType.SHMEMCHANNEL,
+            size,
+            nbytes,
+            name)
 
-    send_port.join()
-    recv_port.join()
+        send_port = shmem_channel.get_send_port()
+        recv_port = shmem_channel.get_recv_port()
 
-    print("finish test function.")
+        recv_port_fn = partial(recv_proc, port = recv_port)
+        send_port_fn = partial(send_proc, port = send_port)
 
-main()
+        builder1 = Builder()
+        builder2 = Builder()
+        self.mp.build_actor(recv_port_fn, builder1)
+        self.mp.build_actor(send_port_fn, builder2)
+
+        time.sleep(2)
+        self.mp.stop()
+
+
+if __name__ == "__main__":
+    unittest.main()
