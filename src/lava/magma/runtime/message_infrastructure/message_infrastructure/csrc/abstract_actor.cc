@@ -76,8 +76,10 @@ void AbstractActor::Run() {
         break;
       }
       if (!handle.second) {
+        // TODO: Modify the logic here
         target_fn_(this);
-        LAVA_LOG(LOG_MP, "Actor: ActorStatus:%d\n", GetStatus());
+        LAVA_LOG_ERR("Actor: ActorStatus:%d\n", GetStatus());
+        break;
       } else {
         // waiting
         _mm_pause();

@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <multiprocessing.h>
+#include <abstract_actor.h>
 
 TEST(HelloTest, BasicAssertions) {
   // Expect two strings not to be equal.
@@ -23,13 +24,14 @@ class Builder {
 
 void Builder::Build(int i) {
   std::cout << "Builder running build " << i << std::endl;
-  std::cout << "Build " << i << "... Sleeping for 10s" << std::endl;
-  sleep(10);
+  std::cout << "Build " << i << "... Sleeping for 3s" << std::endl;
+  sleep(3);
   std::cout << "Build " << i << "... Builder complete" << std::endl;
 }
 
-AbstractActor::TargetFn TargetFunction(Builder builder, int idx) {
+void TargetFunction(Builder builder, int idx, AbstractActor* actor_ptr) {
   std::cout << "Target Function running" << std::endl;
+  actor_ptr->SetStatus(ActorStatus::StatusStopped);
   builder.Build(idx);
 }
 
@@ -38,12 +40,15 @@ TEST(TestMultiprocessing, MultiprocessingSpawn) {
   // Checks that actor is spawned successfully
   Builder *builder = new Builder();
   MultiProcessing mp;
+  AbstractActor::TargetFn target_fn;
 
   for (int i = 0; i < 5; i++) {
     std::cout << "Loop " << i << std::endl;
-    auto bound_fn = std::bind(TargetFunction, std::placeholders::_1, i);
-    mp.BuildActor(bound_fn(*builder));
+    auto bound_fn = std::bind(&TargetFunction, (*builder), i, std::placeholders::_1);
+    target_fn = bound_fn;
+    mp.BuildActor(bound_fn);
   }
+  mp.Stop(true);
 }
 
 TEST(TestMultiprocessing, MultiprocessingShutdown) {
