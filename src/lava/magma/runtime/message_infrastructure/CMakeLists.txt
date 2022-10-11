@@ -15,6 +15,7 @@ set (MESSAGE_INFRASTRUCTURE_SRCS
      "message_infrastructure/csrc/multiprocessing.cc"
      "message_infrastructure/csrc/posix_actor.cc"
      "message_infrastructure/csrc/shm.cc"
+     "message_infrastructure/csrc/socket.cc"
      "message_infrastructure/csrc/shmem_channel.cc"
      "message_infrastructure/csrc/shmem_port.cc"
      )

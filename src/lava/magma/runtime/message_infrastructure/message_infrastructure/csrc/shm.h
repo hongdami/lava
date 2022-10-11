@@ -22,6 +22,7 @@
 #include <ctime>
 
 #include "message_infrastructure_logging.h"
+#include "communicator.h"
 
 namespace message_infrastructure {
 
@@ -30,7 +31,7 @@ namespace message_infrastructure {
 
 using HandleFn = std::function<void(void *)>;
 
-class SharedMemory {
+class SharedMemory : public SharedCommunicator {
  public:
   SharedMemory() {}
   SharedMemory(const size_t &mem_size, const int &shmfd, const int &key);

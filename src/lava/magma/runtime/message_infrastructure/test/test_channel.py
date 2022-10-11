@@ -6,6 +6,7 @@ import numpy as np
 import unittest
 from functools import partial
 import time
+from multiprocessing import Process 
 
 from message_infrastructure.multiprocessing import MultiProcessing
 
@@ -114,6 +115,95 @@ class TestShmemChannel(unittest.TestCase):
 
         send_port.join()
         recv_port.join()
+
+class TestSocketChannel(unittest.TestCase):
+
+    def test_socketchannel(self):
+        mp = MultiProcessing()
+        mp.start()
+        size = 5
+        predata = prepare_data()
+        nbytes = np.prod(predata.shape) * predata.dtype.itemsize
+        name = 'test_socket_channel'
+
+        socket_channel = Channel(
+            ChannelBackend.SOCKETCHANNEL,
+            size,
+            nbytes,
+            name,
+            name)
+
+        send_port = socket_channel.src_port
+        recv_port = socket_channel.dst_port
+
+        recv_port_fn = partial(recv_proc, port=recv_port)
+        send_port_fn = partial(send_proc, port=send_port)
+
+        builder1 = Builder()
+        builder2 = Builder()
+        mp.build_actor(recv_port_fn, builder1)
+        mp.build_actor(send_port_fn, builder2)
+
+        time.sleep(2)
+        mp.stop(True)
+
+    # def test_single_process_socketchannel(self):
+    #     size = 5
+    #     predata = prepare_data()
+    #     nbytes = np.prod(predata.shape) * predata.dtype.itemsize
+    #     name = 'test_single_process_socket_channel'
+
+    #     socket_channel = Channel(
+    #         ChannelBackend.SOCKETCHANNEL,
+    #         size,
+    #         nbytes,
+    #         name,
+    #         name)
+
+    #     send_port = socket_channel.src_port
+    #     recv_port = socket_channel.dst_port
+
+    #     send_port.start()
+    #     recv_port.start()
+
+    #     send_port.send(predata)
+    #     resdata = recv_port.recv()
+
+    #     if not np.array_equal(resdata, predata):
+    #         raise AssertionError()
+
+    #     send_port.join()
+    #     recv_port.join()
+
+    def test_multi_process_socket_channel(self):
+        size = 5
+        predata = prepare_data()
+        nbytes = np.prod(predata.shape) * predata.dtype.itemsize
+        name = 'test_single_process_socket_channel'
+
+        socket_channel = Channel(
+            ChannelBackend.SOCKETCHANNEL,
+            size,
+            nbytes,
+            name,
+            name)
+
+        send_port = socket_channel.src_port
+        recv_port = socket_channel.dst_port
+
+        send_port.start()
+        recv_port.start()
+        t = Process(target=send_port.send, args=(predata,))
+        t.start()
+        # send_port.send(predata)
+        resdata = recv_port.recv()
+
+        if not np.array_equal(resdata, predata):
+            raise AssertionError()
+
+        send_port.join()
+        recv_port.join()
+        t.join()
 
 
 if __name__ == "__main__":

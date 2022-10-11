@@ -11,6 +11,7 @@
 #include "abstract_channel.h"
 #include "abstract_port.h"
 #include "shm.h"
+#include "socket.h"
 #include "shmem_port.h"
 
 namespace message_infrastructure {
@@ -18,19 +19,21 @@ namespace message_infrastructure {
 class ShmemChannel : public AbstractChannel {
  public:
   ShmemChannel() {}
-  ShmemChannel(const std::string &src_name,
+  ShmemChannel(const ChannelType &channel_type,
+               const std::string &src_name,
                const std::string &dst_name,
                const size_t &size,
                const size_t &nbytes);
   AbstractSendPortPtr GetSendPort();
   AbstractRecvPortPtr GetRecvPort();
  private:
-  SharedMemoryPtr shm_ = nullptr;
-  ShmemSendPortPtr send_port_ = nullptr;
-  ShmemRecvPortPtr recv_port_ = nullptr;
+  SharedCommunicatorPtr shm_ = NULL;
+  ShmemSendPortPtr send_port_ = NULL;
+  ShmemRecvPortPtr recv_port_ = NULL;
 };
 
-std::shared_ptr<ShmemChannel> GetShmemChannel(const size_t &size,
+std::shared_ptr<ShmemChannel> GetShmemChannel(const ChannelType &channel_type,
+                              const size_t &size,
                               const size_t &nbytes,
                               const std::string &src_name,
                               const std::string &dst_name);

@@ -118,7 +118,7 @@ ShmemRecvQueue::~ShmemRecvQueue() {
 }
 
 ShmemSendPort::ShmemSendPort(const std::string &name,
-                SharedMemoryPtr shm,
+                SharedCommunicatorPtr shm,
                 const size_t &size,
                 const size_t &nbytes)
   : AbstractSendPort(name, size, nbytes), shm_(shm), done_(false)
@@ -146,15 +146,17 @@ void ShmemSendPort::Join() {
 }
 
 ShmemRecvPort::ShmemRecvPort(const std::string &name,
-                SharedMemoryPtr shm,
+                SharedCommunicatorPtr shm,
                 const size_t &size,
                 const size_t &nbytes)
   : AbstractRecvPort(name, size, nbytes), shm_(shm), done_(false)
 {
+  if (size_ != 0)
   queue_ = std::make_shared<ShmemRecvQueue>(name_, size_, nbytes_);
 }
 
 void ShmemRecvPort::Start() {
+  if (size_ != 0)
   recv_queue_thread_ = std::make_shared<std::thread>(&message_infrastructure::ShmemRecvPort::QueueRecv, this);
 }
 
@@ -173,12 +175,41 @@ void ShmemRecvPort::QueueRecv() {
   }
 }
 
+char * ShmemRecvPort::NoQueueRecv(){
+  if(!done_.load()) {
+    bool ret = false;
+    // if (this->queue_->AvailableCount() > 0) {
+      void *ptr = malloc(nbytes_);
+      ret = shm_->Load([this, ptr](void* data){
+        //this->queue_->Push(data);
+      std::memcpy(ptr, data, nbytes_);
+      });
+    // }
+    if (!ret) {
+      // sleep
+      // helper::Sleep();
+      free(ptr);
+      return NULL;
+    }
+    return (char *)ptr;
+  }
+  return NULL;
+}
+
 bool ShmemRecvPort::Probe() {
   return queue_->Probe();
 }
 
 MetaDataPtr ShmemRecvPort::Recv() {
-  char *cptr = (char *)queue_->Pop(true);
+  char *cptr;
+  if (size_ != 0){
+    cptr = (char *)queue_->Pop(true);
+  }else{
+    cptr = NoQueueRecv();
+  }
+  if (cptr == NULL){
+
+  }
   MetaDataPtr metadata_res = std::make_shared<MetaData>();
   std::memcpy(metadata_res.get(), cptr, sizeof(MetaData));
   metadata_res->mdata = (void*)(cptr + sizeof(MetaData));
@@ -188,8 +219,10 @@ MetaDataPtr ShmemRecvPort::Recv() {
 void ShmemRecvPort::Join() {
   if (!done_) {
     done_ = true;
+    if (size_ != 0){
     recv_queue_thread_->join();
     queue_->Stop();
+    }
   }
 }
 
