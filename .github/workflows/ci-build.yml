@@ -96,8 +96,9 @@ jobs:
       uses: tj-actions/bandit@v5.1
       with:
         targets: |
-          src/lava/.      
-        options: "-r -x ./src/lava/magma/runtime/message_infrastructure/build --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
+          src/lava/.  
+        exclude: src/lava/magma/runtime/message_infrastructure/build
+        options: "-r  --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
 
   unit-tests:
     name: Unit Test Code + Coverage
