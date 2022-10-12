@@ -97,7 +97,7 @@ jobs:
       with:
         targets: |
           src/lava/.      
-        options: "-r  --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
+        options: "-r -c 'pyproject.toml' --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
 
   unit-tests:
     name: Unit Test Code + Coverage
@@ -203,4 +203,10 @@ jobs:
         source $VENV
         python3 -m pip install ipykernel
         pytest test/
-        poetry run build/temp*/MessageInfrastructurePywrapper/test/test_messaging_infrastructure
+
+  msg-infr-cpp-unit-tests:
+    - name: Run message infrastructure cpp unit tests
+      working-directory:  ./src/lava/magma/runtime/message_infrastructure/build/temp*/MessageInfrastructurePywrapper
+      if: runner.os == 'Linux'
+      run: |
+        ctest
