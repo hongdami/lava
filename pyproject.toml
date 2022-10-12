@@ -142,6 +142,7 @@ exclude = ["./docs/", "./src/lava/magma/runtime/message_infrastructure/build"]
 
 [tool.flakeheaven.plugins]
 flake8-bandit = ["+*", "-S322", "-B101", "-S404", "-S602"]       # Enable a plugin, disable specific checks
+exclude = ["./src/lava/magma/runtime/message_infrastructure/build"]
 
 # Disable below plugins temporarily until lint fix is pushed
 flake8-bugbear = ["-*"]
