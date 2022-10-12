@@ -97,7 +97,7 @@ jobs:
       with:
         targets: |
           src/lava/.      
-        options: "-r --exclude ./src/lava/magma/runtime/message_infrastructure/build --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
+        options: "-r -x ./src/lava/magma/runtime/message_infrastructure/build --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
 
   unit-tests:
     name: Unit Test Code + Coverage
