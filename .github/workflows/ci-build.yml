@@ -97,8 +97,7 @@ jobs:
       with:
         targets: |
           src/lava/.  
-        exclude: src/lava/magma/runtime/message_infrastructure/build
-        options: "-r  --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
+        options: "-r -c pyproject.toml --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
 
   unit-tests:
     name: Unit Test Code + Coverage
