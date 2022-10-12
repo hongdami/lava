@@ -203,10 +203,3 @@ jobs:
         source $VENV
         python3 -m pip install ipykernel
         pytest test/
-
-  msg-infr-cpp-unit-tests:
-    - name: Run message infrastructure cpp unit tests
-      working-directory:  ./src/lava/magma/runtime/message_infrastructure/build/temp*/MessageInfrastructurePywrapper
-      if: runner.os == 'Linux'
-      run: |
-        ctest
