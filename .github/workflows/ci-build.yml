@@ -93,7 +93,7 @@ jobs:
       run: poetry install --no-interaction
 
     - name: Run bandit    
-      run: poetry run bandit -c pyproject.toml -r src/lava/.
+      run: bandit -c pyproject.toml -r src/lava/.
   unit-tests:
     name: Unit Test Code + Coverage
     runs-on: ${{ matrix.operating-system }}

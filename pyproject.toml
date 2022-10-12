@@ -145,7 +145,7 @@ exclude = ["./docs/", "./src/lava/magma/runtime/message_infrastructure/build"]
 flake8-bandit = ["+*", "-S322", "-B101", "-S404", "-S602"]       # Enable a plugin, disable specific checks
 
 [tool.bandit]
-exclude_dirs = ["./src/lava/magma/runtime/message_infrastructure/build"]
+exclude_dirs = ["build"]
 
 # Disable below plugins temporarily until lint fix is pushed
 flake8-bugbear = ["-*"]
