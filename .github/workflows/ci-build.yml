@@ -93,12 +93,7 @@ jobs:
       run: poetry install --no-interaction
 
     - name: Run bandit    
-      uses: tj-actions/bandit@v5.1
-      with:
-        targets: |
-          src/lava/.  
-        options: "-r -c 'pyproject.toml' --format custom --msg-template '{abspath}:{line}: {test_id}[bandit]: {severity}: {msg}'"
-
+      run: bandit -c pyproject.toml -r src/lava/.
   unit-tests:
     name: Unit Test Code + Coverage
     runs-on: ${{ matrix.operating-system }}
